@@ -777,7 +777,7 @@ class _LenBase(util.HasDebug):
         iterations = []
         with util.timer() as elapsed:
             for n_insns in range(lo, hi + 1):
-                self.debug('len', f'(size {n_insns})')
+                self.debug('len', f'(size {n_insns} {elapsed() / 1e9:.2f}s)')
                 prgs, stats = session.synth_prgs(n_insns, add_constraints)
                 iterations += [ stats ]
                 if not prgs is None:
