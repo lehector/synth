@@ -780,6 +780,7 @@ class Size:
         with open(self.file) as f:
             for name, sz in solution_sizes(f):
                 print(f'({name} {sz})')
+        return 0
 
 @dataclass(frozen=True)
 class Show:
