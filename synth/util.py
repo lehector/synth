@@ -26,12 +26,15 @@ def bv_popcount(x):
     w = x.sort().size()
     return sum(ZeroExt(w - 1, Extract(i, i, x)) for i in range(w))
 
-def bv_nlz(x):
-    w   = x.sort().size()
-    res = BitVecVal(w, w)
+def bv_nlz(x, out_sort=None):
+    w = x.sort().size()
+    if out_sort is None:
+        out_sort = BitVecSort(w)
+    res = BitVecVal(w, out_sort)
     for i in range(w - 1):
-        res = If(And(Extract(i, i, x) == 1, Extract(w - 1, i + 1, x) == BitVecVal(0, w - 1 - i)), w - 1 - i, res)
-    return If(Extract(w - 1, w - 1, x) == 1, 0, res)
+        res = If(And(Extract(i, i, x) == 1, Extract(w - 1, i + 1, x) == BitVecVal(0, w - 1 - i)),
+                 BitVecVal(w - 1 - i, out_sort), res)
+    return If(Extract(w - 1, w - 1, x) == 1, BitVecVal(0, out_sort), res)
 
 def bv_is_power_of_two(x):
     return Or(1 << i == x for i in range(x.sort().size()))
