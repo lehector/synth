@@ -18,6 +18,7 @@ from z3 import *
 from synth.util import is_val, analyze_precond, free_vars, subst_with_number, Debug
 
 from util.convert import OldToNew, NewToOld
+from util.size import cse, inline_let, term_size
 
 # Default component sets (see SyGuS spec appendix B)
 
@@ -757,24 +758,15 @@ class Synth:
             print(')')
             return 0
 
-def term_size(expr):
-    match expr:
-        case ['let', bindings, body]:
-            return sum(term_size(e) for _, e in bindings) + term_size(body)
-        case ['!', *args]:
-            return sum(term_size(e) for e in args)
-        case [_, *args]:
-            return 1 + sum(term_size(e) for e in args)
-        case _:
-            return 0
-    assertion(False, f'unknown expression: {expr}')
-
 def solution_sizes(input):
     for sexpr in tinysexpr.read(input):
         for s in sexpr:
             if s[0] == 'define-fun':
-                _, name, _, _, phi = s
-                sz = term_size(phi)
+                _, name, bindings, _, phi = s
+                vars = set(v for v, _ in bindings)
+                phi = inline_let(phi, vars)
+                phi = cse(phi, vars)
+                sz = term_size(phi, vars)
                 yield (name, sz)
 
 @dataclass(frozen=True)
