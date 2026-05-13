@@ -68,14 +68,10 @@ class LenConstraints:
         task: The synthesis task.
         n_insn: Number of instructions in the program.
         """
-        self.name    = name
-        self.func    = func
-        self.options = options
-        self.n_insns = n_insns
-
-        # import pprint
-        # pprint.pprint(func)
-
+        self.name         = name
+        self.func         = func
+        self.options      = options
+        self.n_insns      = n_insns
         self.non_terms    = self.func.nonterminals
         self.non_term_idx = { nt_name: i for i, nt_name in enumerate(self.non_terms) }
         self.types        = set(nt.sort for nt in self.non_terms.values())
