@@ -689,6 +689,9 @@ class Synth:
     verbose: bool = False
     """Show statistics while solving."""
 
+    size_range: tuple[int, int] = (0, 20)
+    """Range of program sizes on which synthesis is tried."""
+
     fuse_constraints: bool = False
     """Fuse all synthesis constraints to a single conjunct."""
 
@@ -698,7 +701,7 @@ class Synth:
     opt_grammar: bool = True
     """Inline certain rules."""
 
-    bv_abstract: bool = True
+    bv_abstract: bool = False
     """Use abstraction for bit-vector problems."""
 
     def __call__(self):
@@ -733,6 +736,7 @@ class Synth:
 
         params = {}
         params['opt'] = self.opt
+        params['size_range'] = self.size_range
         if self.verbose:
             params['debug'] = Debug(what='len|cex|abs')
 
