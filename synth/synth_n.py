@@ -77,6 +77,8 @@ class LenConstraints:
         self.types        = set(nt.sort for nt in self.non_terms.values())
         self.param_idx    = { name: i for i, (name, _) in enumerate(self.func.inputs) }
 
+        # create a map from productions to nonterminals
+        # note: two equal productions could appear in multiple non-terminals
         self.prods = defaultdict(list)
         for nt_name, nt in self.non_terms.items():
             for p in nt.productions:
@@ -360,9 +362,8 @@ class LenConstraints:
             # add constraints that set the result type of each instruction
             res.append(self.var_insn_res_nt(insn) == self.nt_mask_for_prod(prod))
             # add constraints that set the type of each operand
-            for (_, name), ic, v in zip(prod.nonterminal_operands(),
-                                        self.var_insn_opnds_is_const(insn),
-                                        self.var_insn_opnds_nt(insn)):
+            for (_, name), v in zip(prod.nonterminal_operands(),
+                                    self.var_insn_opnds_nt(insn)):
                 res.append(v == self.nt_mask(name))
         return res
 
