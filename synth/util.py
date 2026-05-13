@@ -68,6 +68,29 @@ def free_vars(expr) -> set[ExprRef]:
     walk(expr, set())
     return res
 
+def collect_sorts_and_ops(phi: ExprRef) -> tuple[set[SortRef], set[FuncDeclRef]]:
+    """Compute the set of all sorts and operators used in `phi`.
+
+    Sorts include the sort of `phi` and the sorts of all its subexpressions.
+    Operators are the function declarations of all subexpressions, except
+    uninterpreted 0-arity declarations (i.e. free variables / constants).
+    """
+    sorts: set[SortRef] = set()
+    ops: set[FuncDeclRef] = set()
+    seen: set[int] = set()
+    def visit(e):
+        if e.get_id() in seen:
+            return
+        seen.add(e.get_id())
+        sorts.add(e.sort())
+        decl = e.decl()
+        if not (decl.kind() == Z3_OP_UNINTERPRETED and decl.arity() == 0):
+            ops.add(decl)
+        for c in e.children():
+            visit(c)
+    visit(phi)
+    return sorts, ops
+
 _NE0_OPS = frozenset({
     Z3_OP_BSDIV,
     Z3_OP_BUDIV,
