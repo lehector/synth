@@ -8,7 +8,7 @@ import itertools
 from z3 import *
 
 from synth.cegis import cegis
-from synth.spec import Func, Prg, Problem, SynthFunc, Production
+from synth.spec import Func, Nonterminal, Prg, Problem, SynthFunc, Production
 from synth import solvers, util
 
 class EnumBase:
@@ -72,10 +72,22 @@ class LenConstraints:
         self.func         = func
         self.options      = options
         self.n_insns      = n_insns
-        self.non_terms    = self.func.nonterminals
+        self.param_idx    = { name: i for i, (name, _) in enumerate(self.func.inputs) }
+
+        self.non_terms = dict(self.func.nonterminals)
+        # there might be dead parameters:
+        # parameters with a sort that does not appear in the non-terminal list
+        # add "empty" non-terminals for them
+        nt_sorts = set(nt.sort for nt in self.non_terms.values())
+        for missing_ty in set(self.func.in_types).difference(nt_sorts):
+            name = f'$missing_non_terminal_{str(missing_ty)}'
+            assert name not in self.non_terms
+            self.non_terms[name] = Nonterminal(name=name, sort=missing_ty,
+                                               parameters=(),
+                                               productions=(),
+                                               constants={})
         self.non_term_idx = { nt_name: i for i, nt_name in enumerate(self.non_terms) }
         self.types        = set(nt.sort for nt in self.non_terms.values())
-        self.param_idx    = { name: i for i, (name, _) in enumerate(self.func.inputs) }
 
         # create a map from productions to nonterminals
         # note: two equal productions could appear in multiple non-terminals
