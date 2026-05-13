@@ -3,11 +3,14 @@ import functools
 from pathlib import Path
 
 import re
+from typing import Annotated
 import tinysexpr
 import tyro
 import json
 
 from dataclasses import dataclass, field
+
+from tyro.conf import UseCounterAction
 
 from synth.abstraction import AbstractLenCegis, LowerBitsAbstraction
 from synth.spec import Func, SynthFunc, Constraint, Problem, Production, Nonterminal, synth_func_from_ops
@@ -686,7 +689,7 @@ class Synth:
     opt: set[Opt] = field(default_factory=lambda: set(Opt))
     """Optimizations constraints."""
 
-    verbose: bool = False
+    verbose: Annotated[UseCounterAction[int], tyro.conf.arg(aliases=["-v"])] = 0
     """Show statistics while solving."""
 
     size_range: tuple[int, int] = (0, 20)
@@ -737,8 +740,12 @@ class Synth:
         params = {}
         params['opt'] = self.opt
         params['size_range'] = self.size_range
-        if self.verbose:
-            params['debug'] = Debug(what='len|cex|abs')
+        debug_what = []
+        if self.verbose >= 1:
+            debug_what += [ 'len', 'cex', 'abs' ]
+        if self.verbose >= 2:
+            debug_what += [ 'prg' ]
+        params['debug'] = Debug(what='|'.join(debug_what))
 
         if self.bv_abstract and problem.theory == 'BV':
             params['abstractions'] = [ LowerBitsAbstraction(2 ** i) for i in range(1, 5) ]
